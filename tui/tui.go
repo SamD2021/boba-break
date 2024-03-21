@@ -4,86 +4,91 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/SamD2021/boba-break/tui/breakmanagerui"
+	"github.com/SamD2021/boba-break/tui/mainmenuui"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 )
 
-type model struct {
-	selected map[int]struct{}
-	choices  []string
-	cursor   int
+var style = lipgloss.NewStyle().
+	Bold(true).
+	Foreground(lipgloss.Color("#FAFAFA")).
+	Background(lipgloss.Color("#7D56F4")).
+	PaddingTop(2).
+	PaddingLeft(4).
+	Width(22)
+
+type sessionState int
+
+const (
+	mainMenuView sessionState = iota
+	breakManagerView
+	NotesView
+)
+
+type MainModel struct {
+	mainMenu     tea.Model
+	breakManager tea.Model
+	state        sessionState
 }
 
-func initialModel() model {
-	return model{
-		choices:  []string{"Start", "Exit"},
-		selected: make(map[int]struct{}),
+// View implements tea.Model.
+func (m MainModel) View() string {
+	switch m.state {
+	case mainMenuView:
+		return m.mainMenu.View()
+	case breakManagerView:
+		return m.breakManager.View()
+	default:
+		panic("Not implemented yet")
 	}
 }
 
-func (m model) Init() tea.Cmd {
-	// Used for  I/O
+func initialModel() MainModel {
+	return MainModel{
+		state:        mainMenuView,
+		mainMenu:     mainmenuui.NewModel(),
+		breakManager: breakmanagerui.InitialModel(),
+	}
+}
+
+func (m MainModel) Init() tea.Cmd {
+	// Just return `nil`, which means "no I/O right now, please."
 	return nil
 }
 
-func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
-	switch msg := msg.(type) {
-	case tea.KeyMsg:
-		switch msg.String() {
-		case "ctrl+c", "q":
-			return m, tea.Quit
-		case "up", "k":
-			if m.cursor > 0 {
-				m.cursor--
-			}
-		case "down", "j":
-			if m.cursor < len(m.choices)-1 {
-				m.cursor++
-			}
-
-			// Enter or space
-		case "enter", " ":
-			_, ok := m.selected[m.cursor]
-			if ok {
-				delete(m.selected, m.cursor)
-			} else {
-				m.selected[m.cursor] = struct{}{}
-			}
-		}
+func (m MainModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+	var cmd tea.Cmd
+	var cmds []tea.Cmd
+	switch msg.(type) {
+	case mainmenuui.SelectedBreakManagerMsg:
+		m.state = breakManagerView
+	case breakmanagerui.BackMsg:
+		m.state = mainMenuView
 	}
-	return m, nil
+	switch m.state {
+	case mainMenuView:
+		model, newCmd := m.mainMenu.Update(msg)
+		newModel, ok := model.(mainmenuui.Model)
+		if !ok {
+			panic("Couldn't assert return value needed")
+		}
+		m.mainMenu = newModel
+		cmd = newCmd
+	case breakManagerView:
+		newModel, newCmd := m.breakManager.Update(msg)
+		model, ok := newModel.(breakmanagerui.BreakModel)
+		if !ok {
+			panic("Couldn't assert newModel is of type BreakModel")
+		}
+		m.breakManager = model
+		cmd = newCmd
+	}
+	cmds = append(cmds, cmd)
+	return m, tea.Batch(cmds...)
 }
 
-func (m model) View() string {
-	// The header
-	s := "Action?\n\n"
-
-	// Iterate over our choices
-	for i, choice := range m.choices {
-
-		// Is the cursor pointing at this choice?
-		cursor := " " // no cursor
-		if m.cursor == i {
-			cursor = ">" // cursor!
-		}
-
-		// Is this choice selected?
-		checked := " " // not selected
-		if _, ok := m.selected[i]; ok {
-			checked = "x" // selected!
-		}
-
-		// Render the row
-		s += fmt.Sprintf("%s [%s] %s\n", cursor, checked, choice)
-	}
-
-	// The footer
-	s += "\nPress q to quit.\n"
-
-	// Send the UI for rendering
-	return s
-}
-
-func start() {
+func Start() {
 	p := tea.NewProgram(initialModel())
 	if _, err := p.Run(); err != nil {
 		fmt.Printf("Alas, there's been an error: %v", err)
