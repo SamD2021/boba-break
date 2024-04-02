@@ -1,3 +1,21 @@
+/*
+ * Copyright (c) 2024 Samuel Dasilva
+ *
+ * This file is part of Boba Break.
+ *
+ * Boba Break is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Boba Break is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Boba Break. If not, see <https://www.gnu.org/licenses/>.
+ */
 package mainmenuui
 
 import (
@@ -22,11 +40,14 @@ func newItemDelegate(keys *delegateKeyMap) list.DefaultDelegate {
 		case tea.KeyMsg:
 			switch {
 			case key.Matches(msg, keys.choose):
-				name := m.SelectedItem().FilterValue()
-				switch name {
+				switch title {
 				case "Break":
 					return func() tea.Msg {
 						return SelectedBreakManagerMsg{}
+					}
+				case "Notes":
+					return func() tea.Msg {
+						return SelectedNoteMsg{}
 					}
 				}
 				return m.NewStatusMessage(statusMessageStyle("You chose " + title))

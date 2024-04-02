@@ -1,6 +1,21 @@
 /*
-Copyright © 2024 NAME HERE <EMAIL ADDRESS>
-*/
+ * Copyright (c) 2024 Samuel Dasilva
+ *
+ * This file is part of Boba Break.
+ *
+ * Boba Break is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Boba Break is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Boba Break. If not, see <https://www.gnu.org/licenses/>.
+ */
 package cmd
 
 import (
@@ -24,6 +39,7 @@ to quickly create a Cobra application.`,
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		tui.Start()
+		// breakmanagerui.Start()
 	},
 }
 

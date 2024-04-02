@@ -16,6 +16,6 @@
  * You should have received a copy of the GNU General Public License
  * along with Boba Break. If not, see <https://www.gnu.org/licenses/>.
  */
-package breakmanagerui
+package noteui
 
-type BackMsg struct{}
+type GoBackMsg struct{}
