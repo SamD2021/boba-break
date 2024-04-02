@@ -1,7 +1,3 @@
-Below is a README for the project based on the provided code:
-
----
-
 # Boba Break
 
 Boba Break is a terminal-based application designed to help you manage your work-break cycles efficiently. It provides features such as break management, note-taking, and a main menu interface to navigate between different functionalities.
@@ -55,6 +51,38 @@ The Break Log module is a work-in-progress feature intended to log your break ac
 ## Usage
 
 Upon launching the application, you will be presented with the main menu. From there, you can navigate to the Break Manager to start your work-break cycles or to the Notes module to take notes. Use the provided keyboard shortcuts to control the timer and navigate through the application.
+
+## Roadmap
+
+### Version 1.0
+- [x] Implement basic Break Manager UI with timer functionality.
+- [x] Add support for starting, pausing, and resetting timers.
+- [x] Integrate main menu UI for navigation between features.
+
+### Version 1.1
+- [ ] Implement customizable work and break durations.
+- [ ] Add sound notifications for timer events.
+- [ ] Integrate visual indicators for timer progress.
+
+### Version 1.2
+- [ ] Implement Notes UI for taking and saving notes.
+- [x] Add support for basic text editing functionalities.
+- [ ] Integrate saving and loading notes from disk.
+
+### Version 1.3
+- [x] Research and plan daemon implementation for background timer functionality.
+- [ ] Define communication protocols between UI and daemon components.
+- [ ] Implement daemon functionality to handle timer logic in the background.
+
+### Version 1.4
+- [ ] Write comprehensive documentation for installation, usage, and contribution guidelines.
+- [ ] Prepare project for deployment by packaging necessary files and dependencies.
+- [ ] Create release tags and versioning for stable releases.
+
+### Version 1.5 (Future Enhancements)
+- [ ] Explore additional features such as statistics tracking and integration with external tools.
+- [ ] Consider platform-specific optimizations or adaptations for different operating systems.
+- [ ] Experiment with UI/UX improvements based on user feedback and industry trends.
 
 ## Contributing
 
