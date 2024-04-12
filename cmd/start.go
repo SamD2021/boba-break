@@ -4,6 +4,7 @@ Copyright © 2024 Samuel Dasilva
 package cmd
 
 import (
+	"github.com/SamD2021/boba-break/tui/breakmanagerui"
 	"github.com/spf13/cobra"
 )
 
@@ -19,6 +20,7 @@ This application is a tool to generate the needed files
 to quickly create a Cobra application.`,
 	Run: func(cmd *cobra.Command, args []string) {
 		// bm := new(breakmanager.BreakManager)
+		breakmanagerui.InitialModel().Start()
 	},
 }
 

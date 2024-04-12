@@ -20,6 +20,7 @@ package breakmanagerui
 
 import (
 	"fmt"
+	"github.com/SamD2021/boba-break/tui/mainmenuui"
 	"os"
 	"time"
 
@@ -38,7 +39,7 @@ const (
 type BreakModel struct {
 	help   help.Model
 	keymap keymap
-	timer  timer.Model
+	Timer  timer.Model
 	done   bool
 }
 
@@ -51,28 +52,28 @@ type keymap struct {
 }
 
 func (m BreakModel) Init() tea.Cmd {
-	return nil
+	return m.Timer.Init()
 }
 
 func (m BreakModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case timer.TickMsg:
 		var cmd tea.Cmd
-		m.timer, cmd = m.timer.Update(msg)
+		m.Timer, cmd = m.Timer.Update(msg)
 		return m, cmd
 
 	case timer.StartStopMsg:
 		// FIXME Has to click twice to start, but seems to be a problem with how the program is called
 		var cmd tea.Cmd
-		m.timer, cmd = m.timer.Update(msg)
-		m.keymap.stop.SetEnabled(m.timer.Running())
-		m.keymap.start.SetEnabled(!m.timer.Running())
+		m.Timer, cmd = m.Timer.Update(msg)
+		m.keymap.stop.SetEnabled(m.Timer.Running())
+		m.keymap.start.SetEnabled(!m.Timer.Running())
 		return m, cmd
 
 	case timer.TimeoutMsg:
 		var cmd tea.Cmd
 		m.done = true
-		m.timer, cmd = m.timer.Update(msg)
+		m.Timer, cmd = m.Timer.Update(msg)
 		return m, cmd
 
 	case tea.KeyMsg:
@@ -81,16 +82,21 @@ func (m BreakModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.done = true
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.reset):
-			m.timer.Timeout = workTime
+			m.Timer.Timeout = workTime
 			m.done = false
 		case key.Matches(msg, m.keymap.start, m.keymap.stop):
-			return m, m.timer.Toggle()
+			return m, m.Timer.Toggle()
 		case key.Matches(msg, m.keymap.back):
 			return m,
 				func() tea.Msg {
 					return BackMsg{}
 				}
 		}
+	case mainmenuui.SelectedBreakManagerMsg:
+		var cmd tea.Cmd
+		m.Timer, cmd = m.Timer.Update(timer.TickMsg{})
+		return m, cmd
+
 	}
 
 	return m, nil
@@ -111,15 +117,19 @@ func (m BreakModel) View() string {
 	// the remaining time as a time.Duration and skip calling m.timer.View()
 	// entirely.
 	// s := m.timer.View()
-	ms := m.timer.Timeout.Milliseconds()
+	ms := m.Timer.Timeout.Milliseconds()
 	hours := ms / (3.6e+6)
 	ms -= hours
 	minutes := ms / 60000
 	ms -= minutes
 	seconds := ms / 1000
+	// remainingMs := ms % 1000 // Capture the remainder milliseconds
+	// if remainingMs > 0 {
+	// 	seconds++ // Add 1 second if there's a remainder
+	// }
 	s := fmt.Sprintf("%v h %v m %v s", hours%60, minutes%60, seconds%60)
 
-	if m.timer.Timedout() {
+	if m.Timer.Timedout() {
 		s = "Go take a break!"
 		s += m.helpView()
 	}
@@ -133,7 +143,7 @@ func (m BreakModel) View() string {
 
 func InitialModel() BreakModel {
 	m := BreakModel{
-		timer: timer.NewWithInterval(workTime, time.Millisecond),
+		Timer: timer.NewWithInterval(workTime, time.Millisecond),
 		keymap: keymap{
 			start: key.NewBinding(
 				key.WithKeys("s"),
@@ -158,8 +168,8 @@ func InitialModel() BreakModel {
 		},
 		help: help.New(),
 	}
-	m.keymap.stop.SetEnabled(false)
-	// m.keymap.start.SetEnabled(false)
+	m.keymap.stop.SetEnabled(true)
+	m.keymap.start.SetEnabled(false)
 	m.done = false
 	return m
 }
