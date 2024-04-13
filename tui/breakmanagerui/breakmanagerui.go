@@ -20,14 +20,15 @@ package breakmanagerui
 
 import (
 	"fmt"
-	"github.com/SamD2021/boba-break/tui/mainmenuui"
 	"os"
 	"time"
 
+	"github.com/SamD2021/boba-break/tui/mainmenuui"
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/timer"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/gen2brain/beeep"
 )
 
 const (
@@ -63,7 +64,6 @@ func (m BreakModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 
 	case timer.StartStopMsg:
-		// FIXME Has to click twice to start, but seems to be a problem with how the program is called
 		var cmd tea.Cmd
 		m.Timer, cmd = m.Timer.Update(msg)
 		m.keymap.stop.SetEnabled(m.Timer.Running())
@@ -74,6 +74,15 @@ func (m BreakModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		var cmd tea.Cmd
 		m.done = true
 		m.Timer, cmd = m.Timer.Update(msg)
+		icon := ""
+		title := "Boba Time"
+		message := "Time is up, Enjoy some Boba!"
+		err := beeep.Notify(title, message, icon)
+		if err != nil {
+			fmt.Println("Error sending message: ", err)
+		}
+		m.keymap.stop.SetEnabled(m.Timer.Running())
+		m.keymap.start.SetEnabled(!m.Timer.Running())
 		return m, cmd
 
 	case tea.KeyMsg:
@@ -82,8 +91,11 @@ func (m BreakModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.done = true
 			return m, tea.Quit
 		case key.Matches(msg, m.keymap.reset):
+			var cmd tea.Cmd
 			m.Timer.Timeout = workTime
 			m.done = false
+			m.Timer, cmd = m.Timer.Update(timer.TickMsg{})
+			return m, cmd
 		case key.Matches(msg, m.keymap.start, m.keymap.stop):
 			return m, m.Timer.Toggle()
 		case key.Matches(msg, m.keymap.back):
