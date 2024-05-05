@@ -19,3 +19,6 @@
 package breakmanagerui
 
 type BackMsg struct{}
+type SwitchWorkMsg struct{}
+type SwitchBreakMsg struct{}
+type ScribblingMsg struct{}

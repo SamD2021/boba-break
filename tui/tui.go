@@ -21,6 +21,7 @@ package tui
 import (
 	"fmt"
 	"os"
+	"time"
 
 	"github.com/SamD2021/boba-break/tui/breakmanagerui"
 	"github.com/SamD2021/boba-break/tui/mainmenuui"
@@ -43,6 +44,10 @@ const (
 	mainMenuView sessionState = iota
 	breakManagerView
 	notesView
+)
+const (
+	workTime  = time.Minute * 25
+	breakTime = time.Minute * 5
 )
 
 type MainModel struct {
@@ -70,7 +75,7 @@ func initialModel() MainModel {
 	return MainModel{
 		state:        mainMenuView,
 		mainMenu:     mainmenuui.NewModel(),
-		breakManager: breakmanagerui.InitialModel(),
+		breakManager: breakmanagerui.InitialModel(workTime, breakTime),
 		notes:        noteui.InitialModel(),
 	}
 }
@@ -129,5 +134,6 @@ func Start() {
 		fmt.Printf("Alas, there's been an error: %v", err)
 		os.Exit(1)
 	}
+
 	// breakmanagerui.Start()
 }

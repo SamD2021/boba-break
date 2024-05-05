@@ -6,6 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/help"
 	"github.com/charmbracelet/bubbles/key"
 	"github.com/charmbracelet/bubbles/textarea"
+	// "github.com/charmbracelet/logs"
 	tea "github.com/charmbracelet/bubbletea"
 )
 
@@ -38,8 +39,8 @@ func InitialModel() NotesModel {
 		err:      nil,
 		keymap: keymap{
 			back: key.NewBinding(
-				key.WithKeys("ctrl", "shift", "<"),
-				key.WithHelp("ctrl < ", "back"),
+				key.WithKeys("ctrl", "h"),
+				key.WithHelp("ctrl h", "back"),
 			),
 		},
 		help: help.New(),
@@ -60,6 +61,8 @@ func (m NotesModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case tea.KeyEsc:
 			if m.textarea.Focused() {
 				m.textarea.Blur()
+				// fmt.Println(m.textarea.Value())
+				// TODO(sam) Create new keybind for saving to file
 			}
 		case tea.KeyCtrlC:
 			return m, tea.Quit
