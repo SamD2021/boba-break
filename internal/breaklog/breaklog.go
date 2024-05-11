@@ -21,6 +21,7 @@ package breaklog
 import (
 	"encoding/json"
 	"os"
+	"path/filepath"
 	"time"
 )
 
@@ -44,9 +45,9 @@ type FileBreakLogger struct {
 }
 
 func checkFile(filename string) error {
-	_, err := os.Stat(filename)
-	if os.IsNotExist(err) {
-		_, err := os.Create(filename)
+	if _, err := os.Stat(filename); os.IsNotExist(err) {
+		err := os.MkdirAll(filepath.Dir(filename), os.ModePerm)
+		_, err = os.Create(filename)
 		if err != nil {
 			return err
 		}
@@ -57,6 +58,9 @@ func checkFile(filename string) error {
 func NewFileBreakLogger(filepath string) (*FileBreakLogger, error) {
 	entries := []BreakLogEntry{}
 	err := checkFile(filepath)
+	if err != nil {
+		return nil, err
+	}
 	fileInfo, err := os.Stat(filepath)
 	if err != nil {
 		return nil, err
