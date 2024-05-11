@@ -34,25 +34,73 @@ type BreakLogEntry struct {
 
 type BreakLogger interface {
 	AddLogEntry(entry BreakLogEntry) error
+	NewLogEntry() BreakLogEntry
+	BreakLogEntry
 }
 
 type FileBreakLogger struct {
 	filepath string
+	entries  []BreakLogEntry
+}
+
+func checkFile(filename string) error {
+	_, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		_, err := os.Create(filename)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func NewFileBreakLogger(filepath string) (*FileBreakLogger, error) {
+	entries := []BreakLogEntry{}
+	err := checkFile(filepath)
+	fileInfo, err := os.Stat(filepath)
+	if err != nil {
+		return nil, err
+	}
+	if fileInfo.Size() != 0 {
+		file, err := os.ReadFile(filepath)
+		if err != nil {
+			return nil, err
+		}
+
+		err = json.Unmarshal(file, &entries)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return &FileBreakLogger{
+		filepath: filepath,
+		entries:  entries,
+	}, nil
+}
+
+func NewBreakLogEntry(finding string, Reason string) *BreakLogEntry {
+	return &BreakLogEntry{
+		Timestamp: time.Now(),
+		Reason:    Reason,
+		Findings:  finding,
+	}
 }
 
 func (f *FileBreakLogger) SetFilePath(fp string) {
 	f.filepath = fp
 }
 
-func (f *FileBreakLogger) AddLogEntry(entry BreakLogEntry) error {
-	file, err := os.OpenFile(f.filepath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+func (f *FileBreakLogger) AddLogEntry(entry *BreakLogEntry) error {
+	file, err := os.OpenFile(f.filepath, os.O_CREATE|os.O_WRONLY, 0644)
 	if err != nil {
 		return err
 	}
 	defer file.Close()
 	// Encode if necessary
 	// _, err := file.WriteString()
-	json_encoded, err := json.Marshal(entry)
+	f.entries = append(f.entries, *entry)
+	json_encoded, err := json.Marshal(f.entries)
 	if err != nil {
 		return err
 	}

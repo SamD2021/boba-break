@@ -123,7 +123,7 @@ type BreakModel struct {
 	breakTime  time.Duration
 	state      sessionState
 	count      int8
-	scribble   *huh.Form
+	scribble   *scribble
 	scribbling bool
 	lg         *lipgloss.Renderer
 	styles     *Styles
@@ -141,7 +141,7 @@ type keymap struct {
 
 func (m BreakModel) Init() tea.Cmd {
 
-	return tea.Batch(m.Timer.Init(), m.scribble.Init())
+	return tea.Batch(m.Timer.Init(), m.scribble.form.Init())
 }
 
 func (m BreakModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
@@ -251,23 +251,27 @@ func (m BreakModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, cmd
 	case ScribblingMsg:
 		m.scribbling = true
-		m.scribble.Run()
+		err := m.scribble.form.Run()
+		if err != nil {
+			return nil, nil
+		}
 		cmds = append(cmds,
 			func() tea.Msg {
 				return timer.TickMsg{}
 			})
 	}
 	// Process the form
-	form, cmd := m.scribble.Update(msg)
+	form, cmd := m.scribble.form.Update(msg)
 	if f, ok := form.(*huh.Form); ok {
-		m.scribble = f
+		m.scribble.form = *f
 		cmds = append(cmds, cmd)
 	}
-	if m.scribble.State == huh.StateCompleted {
+	if m.scribble.form.State == huh.StateCompleted {
 		// Quit when the form is done.
 		m.scribbling = false
-		m.scribble = huh.NewForm(huh.NewGroup(huh.NewText().Title("Scribble").Placeholder("Current thoughts")))
-		cmd = m.Timer.Toggle()
+		m.scribble.log()
+		m.scribble = New()
+		//cmd = m.Timer.Toggle()
 		cmds = append(cmds, cmd)
 	}
 
@@ -301,10 +305,10 @@ func (m BreakModel) View() string {
 	var footer string
 	header := m.appBoundaryView("Boba Break")
 	if m.scribbling {
-		sv := strings.TrimSuffix(m.scribble.View(), "\n\n")
+		sv := strings.TrimSuffix(m.scribble.form.View(), "\n\n")
 		scribble = m.lg.NewStyle().Margin(1, 1).Render(sv)
 		body = lipgloss.JoinVertical(lipgloss.Top, timer, scribble)
-		footer = m.appBoundaryView(m.scribble.Help().ShortHelpView(m.scribble.KeyBinds()))
+		footer = m.appBoundaryView(m.scribble.form.Help().ShortHelpView(m.scribble.form.KeyBinds()))
 	} else {
 		body = lipgloss.JoinVertical(lipgloss.Top, timer)
 		footer = m.appBoundaryView(m.helpView())
@@ -380,7 +384,7 @@ func InitialModel(workDuration time.Duration, breakDuration time.Duration) Break
 		breakTime:  breakDuration,
 		state:      Focusing,
 		count:      1,
-		scribble:   huh.NewForm(huh.NewGroup(huh.NewText().Title("Scribble").Placeholder("Current thoughts"))),
+		scribble:   New(),
 		lg:         lipgloss.DefaultRenderer(),
 		styles:     NewStyles(lipgloss.DefaultRenderer()),
 		scribbling: false,
