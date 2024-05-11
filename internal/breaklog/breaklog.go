@@ -100,7 +100,12 @@ func (f *FileBreakLogger) AddLogEntry(entry *BreakLogEntry) error {
 	if err != nil {
 		return err
 	}
-	defer file.Close()
+	defer func(file *os.File) {
+		err := file.Close()
+		if err != nil {
+
+		}
+	}(file)
 	// Encode if necessary
 	// _, err := file.WriteString()
 	f.entries = append(f.entries, *entry)
